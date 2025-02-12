@@ -38,9 +38,14 @@
             }
             let videoId = videoIdMatch[1];
 
-            // Step 2: Fetch video duration from YouTube page
-            let videoPage = await fetch(`https://www.youtube.com/watch?v=${videoId}`);
-            let videoPageText = await videoPage.text();
+            // Step 2: Fetch video duration using a CORS proxy
+            let corsProxy = "https://api.allorigins.win/get?url="; // Alternative: "https://corsproxy.io/?" or "https://thingproxy.freeboard.io/fetch/"
+            let videoPageUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+            let proxyResponse = await fetch(`${corsProxy}${encodeURIComponent(videoPageUrl)}`);
+            let proxyData = await proxyResponse.json();
+            let videoPageText = proxyData.contents;
+
             let durationMatch = videoPageText.match(/"approxDurationMs":"(\d+)"/);
             let durationSeconds = durationMatch ? parseInt(durationMatch[1]) / 1000 : "Unknown";
 
