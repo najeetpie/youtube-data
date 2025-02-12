@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Info</title>
+</head>
+<body>
+    <h2>YouTube Video Info Fetcher</h2>
+    <input type="text" id="videoUrl" placeholder="Enter YouTube URL">
+    <button onclick="fetchYouTubeInfo()">Get Video Info</button>
+
+    <div id="output"></div>
+
+    <script>
+        async function fetchYouTubeInfo() {
+            let urlInput = document.getElementById("videoUrl").value;
+            if (!urlInput) {
+                alert("Please enter a YouTube URL");
+                return;
+            }
+
+            // Step 1: Get metadata from Noembed
+            let oembedUrl = `https://noembed.com/embed?url=${encodeURIComponent(urlInput)}`;
+            let oembedResponse = await fetch(oembedUrl);
+            let oembedData = await oembedResponse.json();
+
+            if (oembedResponse.status !== 200 || !oembedData.title) {
+                alert("Invalid YouTube URL or failed to fetch data.");
+                return;
+            }
+
+            // Extract Video ID
+            let videoIdMatch = urlInput.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/);
+            if (!videoIdMatch) {
+                alert("Invalid YouTube URL format.");
+                return;
+            }
+            let videoId = videoIdMatch[1];
+
+            // Step 2: Fetch video duration from YouTube page
+            let videoPage = await fetch(`https://www.youtube.com/watch?v=${videoId}`);
+            let videoPageText = await videoPage.text();
+            let durationMatch = videoPageText.match(/"approxDurationMs":"(\d+)"/);
+            let durationSeconds = durationMatch ? parseInt(durationMatch[1]) / 1000 : "Unknown";
+
+            // Step 3: Display results
+            document.getElementById("output").innerHTML = `
+                <p><strong>Title:</strong> ${oembedData.title}</p>
+                <p><strong>Author:</strong> ${oembedData.author_name}</p>
+                <p><strong>Duration:</strong> ${durationSeconds} seconds</p>
+                <img src="${oembedData.thumbnail_url}" alt="Thumbnail" style="max-width: 200px;">
+            `;
+        }
+    </script>
+</body>
+</html>
