@@ -1,60 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube Video Info Scraper</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    h1 { color: #333; }
-    pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
-  </style>
-</head>
-<body>
-  <h1>YouTube Video Info Scraper</h1>
-  <div id="output">Loading...</div>
+async function getYouTubeMetadata(videoUrl) {
+  try {
+    const proxyUrl = 'https://corsproxy.io/?'; 
+    const response = await fetch(proxyUrl + videoUrl);
+    const html = await response.text();
 
-  <script>
-    async function getYouTubeMetadata(videoUrl) {
-      try {
-        const response = await fetch(videoUrl);
-        const html = await response.text();
-        
-        const titleMatch = html.match(/<meta name="title" content="(.*?)">/);
-        const authorMatch = html.match(/<link itemprop="name" content="(.*?)">/);
-        const thumbnailMatch = html.match(/<link itemprop="thumbnailUrl" href="(.*?)">/);
-        const durationMatch = html.match(/<meta itemprop="duration" content="(.*?)">/);
+    const titleMatch = html.match(/<meta name="title" content="(.*?)">/);
+    const authorMatch = html.match(/<link itemprop="name" content="(.*?)">/);
+    const thumbnailMatch = html.match(/<link itemprop="thumbnailUrl" href="(.*?)">/);
+    const durationMatch = html.match(/<meta itemprop="duration" content="(.*?)">/);
 
-        const videoInfo = {
-          title: titleMatch ? titleMatch[1] : 'Not found',
-          author: authorMatch ? authorMatch[1] : 'Not found',
-          thumbnail: thumbnailMatch ? thumbnailMatch[1] : 'Not found',
-          duration: durationMatch ? durationMatch[1] : 'Not found'
-        };
-        
-        return videoInfo;
-      } catch (error) {
-        return { error: 'Failed to fetch video details.' };
-      }
-    }
+    const videoInfo = {
+      title: titleMatch ? titleMatch[1] : 'Not found',
+      author: authorMatch ? authorMatch[1] : 'Not found',
+      thumbnail: thumbnailMatch ? thumbnailMatch[1] : 'Not found',
+      duration: durationMatch ? durationMatch[1] : 'Not found'
+    };
 
-    async function displayVideoInfo() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const videoUrl = urlParams.get('url');
-      if (!videoUrl) {
-        document.getElementById('output').innerText = 'No YouTube URL provided.';
-        return;
-      }
-
-      const info = await getYouTubeMetadata(videoUrl);
-      document.getElementById('output').innerHTML = `
-        <h2>Video Information:</h2>
-        <pre>${JSON.stringify(info, null, 2)}</pre>
-        ${info.thumbnail !== 'Not found' ? `<img src="${info.thumbnail}" alt="Thumbnail" style="max-width:300px;">` : ''}
-      `;
-    }
-
-    displayVideoInfo();
-  </script>
-</body>
-</html>
+    return videoInfo;
+  } catch (error) {
+    return { error: 'Failed to fetch video details.' };
+  }
+}
