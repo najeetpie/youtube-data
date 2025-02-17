@@ -45,14 +45,13 @@
 
             if (videoUrl) {
                 const data = await fetchVideoData(videoUrl);
+                // Set headers via meta for better compatibility
                 document.body.innerText = JSON.stringify(data);
-                document.contentType = 'application/json';
             }
         }
 
         window.addEventListener('DOMContentLoaded', handlePageLoad);
     </script>
 </head>
-<body>
-</body>
+<body></body>
 </html>
