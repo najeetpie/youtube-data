@@ -2,84 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Video Info</title>
-</head>
-<body>
-    <h2>YouTube Video Info Fetcher</h2>
-    <input type="text" id="videoUrl" placeholder="Enter YouTube URL">
-    <button onclick="fetchYouTubeInfo()">Get Video Info</button>
-
-    <div id="output"></div>
-
+    <title>YouTube Video Data Fetcher</title>
     <script>
-        async function fetchYouTubeInfo(url = '') {
-            let urlInput = url || document.getElementById("videoUrl").value;
-            if (!urlInput) {
-                alert("Please enter a YouTube URL");
-                return;
+        async function fetchVideoData(videoUrl) {
+            const videoId = getYouTubeVideoID(videoUrl);
+            if (!videoId) {
+                return { error: 'Invalid YouTube URL' };
             }
 
-            // Fetch metadata from Noembed
-            let oembedUrl = `https://noembed.com/embed?url=${encodeURIComponent(urlInput)}`;
-            let response = await fetch(oembedUrl, {
-                headers: {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                    "Accept": "application/json"
-                }
-            });
-            let data = await response.json();
+            try {
+                const noembedData = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`).then(res => res.json());
 
-            if (response.status !== 200 || !data.title) {
-                alert("Invalid YouTube URL or failed to fetch data.");
-                return;
+                const duration = await fetchDuration(videoId);
+
+                return {
+                    author: noembedData.author_name,
+                    title: noembedData.title,
+                    duration_seconds: duration,
+                    thumbnail: noembedData.thumbnail_url
+                };
+
+            } catch (error) {
+                return { error: error.message };
             }
-
-            // Extract Video ID
-            let videoIdMatch = urlInput.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/);
-            if (!videoIdMatch) {
-                alert("Invalid YouTube URL format.");
-                return;
-            }
-            let videoId = videoIdMatch[1];
-
-            // Scrape YouTube page for duration with no-cors mode
-            let videoPageUrl = `https://www.youtube.com/watch?v=${videoId}`;
-            let videoPageResponse = await fetch(videoPageUrl, { mode: 'no-cors' });
-            let videoPageText = await videoPageResponse.text();
-
-            // Attempt to find duration in the page source
-            let durationMatch = videoPageText.match(/"approxDurationMs":"(\d+)"/);
-            let durationSeconds = durationMatch ? parseInt(durationMatch[1]) / 1000 : "Unknown";
-
-            // Prepare result object
-            let result = {
-                title: data.title,
-                author: data.author_name,
-                thumbnail: data.thumbnail_url,
-                duration_seconds: durationSeconds
-            };
-
-            // Display JSON if URL param present
-            if (url) {
-                document.body.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
-                return;
-            }
-
-            // Display results normally
-            document.getElementById("output").innerHTML = `
-                <p><strong>Title:</strong> ${result.title}</p>
-                <p><strong>Author:</strong> ${result.author}</p>
-                <p><strong>Duration:</strong> ${result.duration_seconds} seconds</p>
-                <img src="${result.thumbnail}" alt="Thumbnail" style="max-width: 200px;">
-            `;
         }
 
-        // Check URL parameters on page load
+        function getYouTubeVideoID(url) {
+            const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/);
+            return match ? match[1] : null;
+        }
+
+        async function fetchDuration(videoId) {
+            const watchUrl = `https://corsproxy.io/?https://www.youtube.com/watch?v=${videoId}`;
+            const response = await fetch(watchUrl);
+            const html = await response.text();
+            const match = html.match(/"lengthSeconds":"(\d+)"/);
+            return match ? parseInt(match[1]) : null;
+        }
+
+        async function handlePageLoad() {
+            const params = new URLSearchParams(window.location.search);
+            const videoUrl = params.get('url');
+
+            if (videoUrl) {
+                const data = await fetchVideoData(videoUrl);
+                document.body.innerText = JSON.stringify(data, null, 2);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', handlePageLoad);
+    </script>
+</head>
+<body>
+    <div id="interactive-ui">
+        <h1>YouTube Video Data Fetcher</h1>
+        <input type="text" id="videoUrl" placeholder="Enter YouTube URL">
+        <button onclick="getData()">Get Video Data</button>
+        <pre id="result"></pre>
+    </div>
+
+    <script>
+        async function getData() {
+            const url = document.getElementById('videoUrl').value;
+            const data = await fetchVideoData(url);
+            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+        }
+
         const params = new URLSearchParams(window.location.search);
-        const videoUrl = params.get('url');
-        if (videoUrl) {
-            fetchYouTubeInfo(videoUrl);
+        if (params.get('url')) {
+            document.getElementById('interactive-ui').style.display = 'none';
         }
     </script>
 </body>
