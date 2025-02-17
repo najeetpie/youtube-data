@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>YouTube Video Data Fetcher</title>
+    <title>YouTube Video Data Fetcher API</title>
     <script>
         async function fetchVideoData(videoUrl) {
             const videoId = getYouTubeVideoID(videoUrl);
@@ -12,7 +12,6 @@
 
             try {
                 const noembedData = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`).then(res => res.json());
-
                 const duration = await fetchDuration(videoId);
 
                 return {
@@ -46,7 +45,8 @@
 
             if (videoUrl) {
                 const data = await fetchVideoData(videoUrl);
-                document.body.innerText = JSON.stringify(data, null, 2);
+                document.body.innerText = JSON.stringify(data);
+                document.contentType = 'application/json';
             }
         }
 
@@ -54,24 +54,5 @@
     </script>
 </head>
 <body>
-    <div id="interactive-ui">
-        <h1>YouTube Video Data Fetcher</h1>
-        <input type="text" id="videoUrl" placeholder="Enter YouTube URL">
-        <button onclick="getData()">Get Video Data</button>
-        <pre id="result"></pre>
-    </div>
-
-    <script>
-        async function getData() {
-            const url = document.getElementById('videoUrl').value;
-            const data = await fetchVideoData(url);
-            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-        }
-
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('url')) {
-            document.getElementById('interactive-ui').style.display = 'none';
-        }
-    </script>
 </body>
 </html>
