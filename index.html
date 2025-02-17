@@ -22,7 +22,12 @@
 
             // Fetch metadata from Noembed
             let oembedUrl = `https://noembed.com/embed?url=${encodeURIComponent(urlInput)}`;
-            let response = await fetch(oembedUrl);
+            let response = await fetch(oembedUrl, {
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                    "Accept": "application/json"
+                }
+            });
             let data = await response.json();
 
             if (response.status !== 200 || !data.title) {
@@ -40,7 +45,12 @@
 
             // Scrape YouTube page for duration
             let videoPageUrl = `https://www.youtube.com/watch?v=${videoId}`;
-            let videoPageResponse = await fetch(videoPageUrl);
+            let videoPageResponse = await fetch(videoPageUrl, {
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                    "Accept": "text/html"
+                }
+            });
             let videoPageText = await videoPageResponse.text();
 
             // Attempt to find duration in the page source
