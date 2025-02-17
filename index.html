@@ -13,19 +13,19 @@
     <div id="output"></div>
 
     <script>
-        async function fetchYouTubeInfo() {
-            let urlInput = document.getElementById("videoUrl").value;
+        async function fetchYouTubeInfo(url = '') {
+            let urlInput = url || document.getElementById("videoUrl").value;
             if (!urlInput) {
                 alert("Please enter a YouTube URL");
                 return;
             }
 
-            // Step 1: Get metadata from Noembed
+            // Fetch metadata from Noembed
             let oembedUrl = `https://noembed.com/embed?url=${encodeURIComponent(urlInput)}`;
-            let oembedResponse = await fetch(oembedUrl);
-            let oembedData = await oembedResponse.json();
+            let response = await fetch(oembedUrl);
+            let data = await response.json();
 
-            if (oembedResponse.status !== 200 || !oembedData.title) {
+            if (response.status !== 200 || !data.title) {
                 alert("Invalid YouTube URL or failed to fetch data.");
                 return;
             }
@@ -38,24 +38,43 @@
             }
             let videoId = videoIdMatch[1];
 
-            // Step 2: Fetch video duration using a CORS proxy
-            let corsProxy = "https://api.allorigins.win/get?url="; // Alternative: "https://corsproxy.io/?" or "https://thingproxy.freeboard.io/fetch/"
+            // Scrape YouTube page for duration
             let videoPageUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            let videoPageResponse = await fetch(videoPageUrl);
+            let videoPageText = await videoPageResponse.text();
 
-            let proxyResponse = await fetch(`${corsProxy}${encodeURIComponent(videoPageUrl)}`);
-            let proxyData = await proxyResponse.json();
-            let videoPageText = proxyData.contents;
-
+            // Attempt to find duration in the page source
             let durationMatch = videoPageText.match(/"approxDurationMs":"(\d+)"/);
             let durationSeconds = durationMatch ? parseInt(durationMatch[1]) / 1000 : "Unknown";
 
-            // Step 3: Display results
+            // Prepare result object
+            let result = {
+                title: data.title,
+                author: data.author_name,
+                thumbnail: data.thumbnail_url,
+                duration_seconds: durationSeconds
+            };
+
+            // Display JSON if URL param present
+            if (url) {
+                document.body.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                return;
+            }
+
+            // Display results normally
             document.getElementById("output").innerHTML = `
-                <p><strong>Title:</strong> ${oembedData.title}</p>
-                <p><strong>Author:</strong> ${oembedData.author_name}</p>
-                <p><strong>Duration:</strong> ${durationSeconds} seconds</p>
-                <img src="${oembedData.thumbnail_url}" alt="Thumbnail" style="max-width: 200px;">
+                <p><strong>Title:</strong> ${result.title}</p>
+                <p><strong>Author:</strong> ${result.author}</p>
+                <p><strong>Duration:</strong> ${result.duration_seconds} seconds</p>
+                <img src="${result.thumbnail}" alt="Thumbnail" style="max-width: 200px;">
             `;
+        }
+
+        // Check URL parameters on page load
+        const params = new URLSearchParams(window.location.search);
+        const videoUrl = params.get('url');
+        if (videoUrl) {
+            fetchYouTubeInfo(videoUrl);
         }
     </script>
 </body>
