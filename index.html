@@ -43,14 +43,9 @@
             }
             let videoId = videoIdMatch[1];
 
-            // Scrape YouTube page for duration
+            // Scrape YouTube page for duration with no-cors mode
             let videoPageUrl = `https://www.youtube.com/watch?v=${videoId}`;
-            let videoPageResponse = await fetch(videoPageUrl, {
-                headers: {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                    "Accept": "text/html"
-                }
-            });
+            let videoPageResponse = await fetch(videoPageUrl, { mode: 'no-cors' });
             let videoPageText = await videoPageResponse.text();
 
             // Attempt to find duration in the page source
