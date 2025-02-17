@@ -21,8 +21,11 @@
                     thumbnail: noembedData.thumbnail_url
                 };
 
-                // Force JSON output
-                document.body.innerText = JSON.stringify(responseData);
+                // Render as plain text to mimic JSON
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(responseData);
+                document.body.appendChild(pre);
+
             } catch (error) {
                 document.body.innerText = JSON.stringify({ error: error.message });
             }
