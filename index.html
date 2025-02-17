@@ -14,15 +14,17 @@
                 const noembedData = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`).then(res => res.json());
                 const duration = await fetchDuration(videoId);
 
-                return {
+                const responseData = {
                     author: noembedData.author_name,
                     title: noembedData.title,
                     duration_seconds: duration,
                     thumbnail: noembedData.thumbnail_url
                 };
 
+                // Force JSON output
+                document.body.innerText = JSON.stringify(responseData);
             } catch (error) {
-                return { error: error.message };
+                document.body.innerText = JSON.stringify({ error: error.message });
             }
         }
 
@@ -44,9 +46,7 @@
             const videoUrl = params.get('url');
 
             if (videoUrl) {
-                const data = await fetchVideoData(videoUrl);
-                // Set headers via meta for better compatibility
-                document.body.innerText = JSON.stringify(data);
+                await fetchVideoData(videoUrl);
             }
         }
 
