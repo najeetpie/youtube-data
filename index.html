@@ -7,7 +7,7 @@
         async function fetchVideoData(videoUrl) {
             const videoId = getYouTubeVideoID(videoUrl);
             if (!videoId) {
-                return { error: 'Invalid YouTube URL' };
+                return sendJsonResponse({ error: 'Invalid YouTube URL' });
             }
 
             try {
@@ -21,11 +21,9 @@
                     thumbnail: noembedData.thumbnail_url
                 };
 
-                // Write JSON data directly to the document as plain text
-                document.body.textContent = JSON.stringify(responseData);
-
+                sendJsonResponse(responseData);
             } catch (error) {
-                document.body.textContent = JSON.stringify({ error: error.message });
+                sendJsonResponse({ error: error.message });
             }
         }
 
@@ -40,6 +38,14 @@
             const html = await response.text();
             const match = html.match(/"lengthSeconds":"(\d+)"/);
             return match ? parseInt(match[1]) : null;
+        }
+
+        function sendJsonResponse(data) {
+            // Set proper content type
+            const jsonString = JSON.stringify(data, null, 2);
+            document.open();
+            document.write(`<pre>${jsonString}</pre>`);
+            document.close();
         }
 
         async function handlePageLoad() {
