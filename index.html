@@ -11,7 +11,7 @@
             }
 
             try {
-                const noembedData = await fetch(https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}).then(res => res.json());
+                const noembedData = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`).then(res => res.json());
                 const duration = await fetchDuration(videoId);
 
                 const responseData = {
@@ -22,7 +22,7 @@
                 };
 
                 // Write JSON data directly to the document as plain text
-                document.body.textContent = JSON.stringify(responseData);
+                return responseData;
 
             } catch (error) {
                 document.body.textContent = JSON.stringify({ error: error.message });
@@ -35,7 +35,7 @@
         }
 
         async function fetchDuration(videoId) {
-            const watchUrl = https://corsproxy.io/?https://www.youtube.com/watch?v=${videoId};
+            const watchUrl = `https://corsproxy.io/?https://www.youtube.com/watch?v=${videoId}`;
             const response = await fetch(watchUrl);
             const html = await response.text();
             const match = html.match(/"lengthSeconds":"(\d+)"/);
