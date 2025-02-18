@@ -22,7 +22,10 @@
                 };
 
                 // Write JSON data directly to the document as plain text
-                return responseData;
+                // Render as plain text to mimic JSON
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(responseData);
+                document.body.appendChild(pre);
 
             } catch (error) {
                 document.body.textContent = JSON.stringify({ error: error.message });
